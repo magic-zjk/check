@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jifeng.mapper.PermissionMapper" >
+  <resultMap id="BaseResultMap" type="Permission" >
+    <id column="PERM_ID" property="permId" jdbcType="INTEGER" />
+    <result column="PERM_NAME" property="permName" jdbcType="VARCHAR" />
+    <result column="PERMISSION" property="permission" jdbcType="VARCHAR" />
+    <result column="PERM_DESC" property="permDesc" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    PERM_ID, PERM_NAME, PERMISSION, PERM_DESC
+  </sql>
+  <select id="selectByPermId" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from sys_permission
+    where PERM_ID = #{permId,jdbcType=INTEGER}
+  </select>
+  <select id="selectList" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from sys_permission
+  </select>
+  <delete id="deleteByPermId" parameterType="java.lang.Integer" >
+    delete from sys_permission
+    where PERM_ID = #{permId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="Permission" >
+    insert into sys_permission
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="permId != null" >
+        PERM_ID,
+      </if>
+      <if test="permName != null" >
+        PERM_NAME,
+      </if>
+      <if test="permission != null" >
+        PERMISSION,
+      </if>
+      <if test="permDesc != null" >
+        PERM_DESC,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="permId != null" >
+        #{permId,jdbcType=INTEGER},
+      </if>
+      <if test="permName != null" >
+        #{permName,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null" >
+        #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="permDesc != null" >
+        #{permDesc,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="update" parameterType="Permission" >
+    update sys_permission
+    <set >
+      <if test="permName != null" >
+        PERM_NAME = #{permName,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null" >
+        PERMISSION = #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="permDesc != null" >
+        PERM_DESC = #{permDesc,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where PERM_ID = #{permId,jdbcType=INTEGER}
+  </update>
+</mapper>

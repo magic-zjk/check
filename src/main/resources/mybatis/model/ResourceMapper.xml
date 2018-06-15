@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jifeng.mapper.ResourceMapper">
+	<resultMap id="BaseResultMap" type="Resource">
+		<id column="RESC_ID" property="rescId" jdbcType="INTEGER" />
+		<result column="RESC_NAME" property="rescName" jdbcType="VARCHAR" />
+		<result column="PARENT_ID" property="parentId" jdbcType="INTEGER" />
+		<result column="IDENTITY" property="identity" jdbcType="VARCHAR" />
+		<result column="URL" property="url" jdbcType="VARCHAR" />
+		<result column="TYPE" property="type" jdbcType="INTEGER" />
+		<result column="ICON" property="icon" jdbcType="VARCHAR" />
+		<result column="SORT" property="sort" jdbcType="INTEGER" />
+		<result column="RESC_DESC" property="rescDesc" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="treeMenuResultMap" type="Resource" extends="BaseResultMap">
+		<collection property="subRescs" ofType="Resource" column="{parentId=RESC_ID,userId=USER_ID}" select="selectLeftMenu"></collection>
+	</resultMap>
+	<resultMap id="ResultWithPerm" type="Resource" extends="BaseResultMap">
+		<result column="PERMISSION_IDS" property="permissions" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		RESC_ID, RESC_NAME, PARENT_ID, IDENTITY, URL, TYPE, ICON, SORT, RESC_DESC
+	</sql>
+	<select id="selectAllParentResc" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_resource
+		where PARENT_ID is null or PARENT_ID = 0
+		order by SORT
+	</select>
+	<select id="selectSubResc" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_resource
+		where PARENT_ID = #{parentId,jdbcType=INTEGER}
+		order by SORT
+	</select>
+	<select id="selectLeftMenu" parameterType="pd" resultMap="treeMenuResultMap">
+		<choose>
+			<when test="userId != null">
+				SELECT
+				re.*,u.USER_ID
+				FROM
+				sys_resource re,
+				sys_role_resource rr,
+				sys_role ro,
+				sys_user_role ur,
+				sys_user u
+				<where>
+					<choose>
+						<when test="parentId != null">
+							and re.PARENT_ID = #{parentId,jdbcType=INTEGER}
+						</when>
+						<otherwise>
+							and re.PARENT_ID = 0
+						</otherwise>
+					</choose>
+					and u.USER_ID = #{userId,jdbcType=INTEGER}
+					and u.USER_ID = ur.USER_ID
+					and ur.ROLE_ID = ro.ROLE_ID
+					and ro.ROLE_ID = rr.ROLE_ID
+					and rr.RESC_ID = re.RESC_ID
+				</where>
+				 order by SORT
+			</when>
+			<otherwise>
+				SELECT
+				re.*,null USER_ID
+				FROM
+				sys_resource re
+				<where>
+					<choose>
+						<when test="parentId != null">
+							and re.PARENT_ID = #{parentId,jdbcType=INTEGER}
+						</when>
+						<otherwise>
+							and re.PARENT_ID = 0
+						</otherwise>
+					</choose>
+				</where>
+				order by SORT
+			</otherwise>
+		</choose>
+	
+	</select>
+	<select id="selectByRoleId" parameterType="java.lang.Integer" resultMap="ResultWithPerm">
+		select r.*,rr.PERMISSION_IDS
+		from sys_resource r
+		left join sys_role_resource rr on rr.RESC_ID = r.RESC_ID
+		where rr.ROLE_ID = #{roleId,jdbcType=INTEGER}
+	</select>
+	<select id="selectByRescId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_resource
+		where RESC_ID = #{rescId,jdbcType=INTEGER}
+	</select>
+	<insert id="insert" parameterType="Resource">
+		insert into sys_resource
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="rescId != null">
+				RESC_ID,
+			</if>
+			<if test="rescName != null">
+				RESC_NAME,
+			</if>
+			<if test="parentId != null">
+				PARENT_ID,
+			</if>
+			<if test="identity != null">
+				IDENTITY,
+			</if>
+			<if test="url != null">
+				URL,
+			</if>
+			<if test="type != null">
+				TYPE,
+			</if>
+			<if test="icon != null">
+				ICON,
+			</if>
+			<if test="sort != null">
+				SORT,
+			</if>
+			<if test="rescDesc != null">
+				RESC_DESC,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="rescId != null">
+				#{rescId,jdbcType=INTEGER},
+			</if>
+			<if test="rescName != null">
+				#{rescName,jdbcType=VARCHAR},
+			</if>
+			<if test="parentId != null">
+				#{parentId,jdbcType=INTEGER},
+			</if>
+			<if test="identity != null">
+				#{identity,jdbcType=VARCHAR},
+			</if>
+			<if test="url != null">
+				#{url,jdbcType=VARCHAR},
+			</if>
+			<if test="type != null">
+				#{type,jdbcType=INTEGER},
+			</if>
+			<if test="icon != null">
+				#{icon,jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null">
+				#{sort,jdbcType=INTEGER},
+			</if>
+			<if test="rescDesc != null">
+				#{rescDesc,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="update" parameterType="Resource">
+		update sys_resource
+		<set>
+			<if test="rescName != null">
+				RESC_NAME = #{rescName,jdbcType=VARCHAR},
+			</if>
+			<if test="parentId != null">
+				PARENT_ID = #{parentId,jdbcType=INTEGER},
+			</if>
+			<if test="identity != null">
+				IDENTITY = #{identity,jdbcType=VARCHAR},
+			</if>
+			<if test="url != null">
+				URL = #{url,jdbcType=VARCHAR},
+			</if>
+			<if test="type != null">
+				TYPE = #{type,jdbcType=INTEGER},
+			</if>
+			<if test="icon != null">
+				ICON = #{icon,jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null">
+				SORT = #{sort,jdbcType=INTEGER},
+			</if>
+			<if test="rescDesc != null">
+				RESC_DESC = #{rescDesc,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where RESC_ID = #{rescId,jdbcType=INTEGER}
+	</update>
+	<delete id="deleteByRescId" parameterType="java.lang.Integer">
+		delete from sys_resource
+		where RESC_ID = #{rescId,jdbcType=INTEGER}
+	</delete>
+	<delete id="batchDeleteResc" parameterType="java.util.List">  
+	    delete from sys_resource
+	    where RESC_ID in
+	    <foreach collection="list" index="index" item="item" open="(" separator="," close=")">   
+	        #{item.rescId,jdbcType=INTEGER}   
+	    </foreach>  
+	</delete>
+	<select id="findPermissions" parameterType="pd" resultType="java.lang.String">
+		select concat(t.IDENTITY,':',t.PERMISSION) permission from 
+		(
+			select distinct re.IDENTITY,p.PERMISSION from sys_permission p,sys_resource re
+			<if test="userName != 'admin'">
+			,sys_role_resource rr,sys_role ro,sys_user_role ur,sys_user u
+			</if>
+			<where>
+			and re.IDENTITY is not null and re.IDENTITY != ''
+			<if test="userName != 'admin'">
+			and u.USER_NAME = #{userName,jdbcType=VARCHAR}
+			and rr.PERMISSION_IDS is not null and rr.PERMISSION_IDS != ''
+			and u.USER_ID = ur.USER_ID
+			and ur.ROLE_ID = ro.ROLE_ID
+			and ro.ROLE_ID = rr.ROLE_ID
+			and rr.RESC_ID = re.RESC_ID
+			and FIND_IN_SET(p.PERM_ID,rr.PERMISSION_IDS)
+			</if>
+			</where>
+		) t
+	</select>
+</mapper>
